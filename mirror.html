@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEEPLEAK // зеркало #2</title>
+<link rel="stylesheet" href="mirror.css">
+</head>
+<body>
+<div id="grain"></div>
+<div id="scan"></div>
+
+<header id="topbar">
+  <a class="ic" href="index.html" title="вернуться на зеркало #1">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 18l-6-6 6-6"/></svg>
+    <span>зеркало #1</span>
+  </a>
+  <div class="mid">зеркало&nbsp;//&nbsp;#2&nbsp;//&nbsp;отражение&nbsp;архива</div>
+  <a class="ic" href="desktop.html" title="внутренний узел">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="3.5" width="19" height="13" rx="1.5"/><path d="M8 20.5h8M12 16.5v4"/></svg>
+    <span>узел</span>
+  </a>
+</header>
+
+<section id="hero">
+  <div class="glitch" data-text="SILENCE">SILENCE</div>
+  <div class="tagline">// у зеркала две стороны — собери отражение</div>
+  <div class="hint">Это повреждённое зеркало архива. То, что на нём было изображено, раскололось на
+    фрагменты и каждая деталь ещё и <b>повёрнута</b>. Собери картинку: <b>перетаскивай</b> фрагменты
+    мышью, чтобы менять их местами, и <b>кликай</b> по фрагменту, чтобы повернуть его по часовой стрелке
+    (четыре положения). Когда отражение сойдётся — оно покажет, куда идти дальше.</div>
+</section>
+
+<div id="stage">
+  <div id="board"></div>
+  <div id="status"></div>
+</div>
+
+<div id="win">
+  <canvas></canvas>
+  <div class="cap">отражение собрано. то, что ты видишь — это маршрут к фрагменту.</div>
+  <a class="dl" href="./mirror/fragment.txt" download><span>забрать фрагмент →</span></a>
+  <div class="qr">собранное изображение — QR: отсканируй его, либо скачай фрагмент кнопкой выше.</div>
+</div>
+
+<div id="back"><a href="index.html">← вернуться на зеркало #1</a></div>
+
+<script src="mirror.js"></script>
+</body>
+</html>
