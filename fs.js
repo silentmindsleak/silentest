@@ -56,7 +56,7 @@ Compliance & Security`, attachments:[] },
   anna_desk: { kind:'file', name:'anna_desk.png', ext:'png', type:'image', size:'6.7 MB',
     src:'./assets/anna_desk.png',
     caption:'рабочее место Анны — выгрузили как есть, не сжимали',
-    note:'скачай оригинал и проверь метаданные файла (strings / exiftool / свойства). размер файла — 6.7 MB.' },
+    note:' ' },
 
   model_card_v3: { kind:'file', name:'model_card_v3.pdf', ext:'pdf', type:'pdf',
     stamp:'INTERNAL — DO NOT DISTRIBUTE',
