@@ -85,92 +85,75 @@
     launchFireworks();
   }
 
-  // --- УЛУЧШЕННЫЙ ФЕЙЕРВЕРК ---
+  // --- ФЕЙЕРВЕРК: лёгкий, быстрый и НЕ закрывает QR ---
   function launchFireworks(){
-    // overlay canvas
+    // canvas ПОД интерфейсом: #stage и #win имеют z-index:2, поэтому
+    // салют идёт позади — QR и кнопка всегда видимы и кликабельны
     var c = document.createElement('canvas');
     c.id = 'fireworks';
-    c.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:10000;background:transparent;';
+    c.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;background:transparent;';
     document.body.appendChild(c);
     var ctx = c.getContext('2d');
-    function resize(){ c.width = window.innerWidth; c.height = window.innerHeight; }
+    var DPR = Math.min(window.devicePixelRatio || 1, 1.2); // ограничение разрешения — главный антилаг
+    function resize(){ c.width = Math.floor(window.innerWidth * DPR); c.height = Math.floor(window.innerHeight * DPR); }
     resize(); window.addEventListener('resize', resize);
 
-    var rockets = [];
-    var particles = [];
+    var rockets = [], particles = [];
     var startTime = performance.now();
-    var duration = 9000; // 9 секунд шоу
     var lastRocket = 0;
+    var SPAWN_MS = 1600;  // ракеты запускаются только первые 1.6 сек
+    var END_MS   = 3200;  // всё шоу — около 3–4 сек с учётом догоравших искр
 
     function rand(min,max){ return Math.random()*(max-min)+min; }
 
     function spawnRocket(){
-      var x = rand(c.width*0.2, c.width*0.8);
       rockets.push({
-        x:x, y:c.height+10,
-        vx:rand(-1.2,1.2),
-        vy:rand(-11,-14),
-        hue: rand(0,60)>30 ? rand(175,210) : rand(330,350), // cyan / magenta
-        life:0,
-        targetY: rand(c.height*0.15, c.height*0.45)
+        x: rand(c.width*0.15, c.width*0.85), y: c.height + 10,
+        vx: rand(-1,1) * DPR,
+        vy: rand(-11,-13.5) * DPR,
+        hue: Math.random() > 0.5 ? rand(175,210) : rand(330,350), // cyan / magenta
+        targetY: rand(c.height*0.12, c.height*0.45)
       });
     }
 
     function explode(rx, ry, hue){
-      var count = 90 + Math.floor(Math.random()*60);
+      var count = 42 + Math.floor(Math.random()*18); // в 2.5 раза меньше частиц — меньше лагов
       for(var i=0;i<count;i++){
         var ang = Math.random()*Math.PI*2;
-        var spd = rand(2, 10);
+        var spd = rand(2,8) * DPR;
         particles.push({
           x:rx, y:ry,
-          vx:Math.cos(ang)*spd + rand(-1,1),
-          vy:Math.sin(ang)*spd,
-          life: rand(50,110),
-          maxLife: 110,
+          vx: Math.cos(ang)*spd,
+          vy: Math.sin(ang)*spd,
+          life: rand(28,55),   // короткая жизнь — быстрое самозавершение
+          maxLife: 55,
           hue: hue + rand(-18,18),
-          size: rand(1.5,3.8),
-          gravity: 0.12 + Math.random()*0.08,
-          friction: 0.98,
-          twinkle: Math.random()>0.6
+          size: rand(1.5,3) * DPR,
+          twinkle: Math.random() > 0.6
         });
       }
-      // central flash
-      particles.push({
-        x:rx, y:ry,
-        vx:0, vy:0,
-        life: 12, maxLife:12,
-        hue:hue,
-        size: 22,
-        flash:true
-      });
-      // ring particles
-      for(var j=0;j<18;j++){
-        var a2 = (j/18)*Math.PI*2;
-        particles.push({
-          x:rx, y:ry,
-          vx:Math.cos(a2)*5.5,
-          vy:Math.sin(a2)*5.5,
-          life: 36,
-          maxLife:36,
-          hue:hue,
-          size:2.2,
-          gravity:0.02
-        });
-      }
+      // центральная вспышка
+      particles.push({ x:rx, y:ry, vx:0, vy:0, life:10, maxLife:10, hue:hue, size:20*DPR, flash:true });
     }
+
+    // клик/тап в любом месте — закончить шоу немедленно
+    function skipShow(){
+      startTime = -1e12; // dt станет огромным: спавн стоп, искры догорают <1 сек
+      document.removeEventListener('pointerdown', skipShow);
+    }
+    setTimeout(function(){ document.addEventListener('pointerdown', skipShow); }, 900);
 
     function loop(now){
       var dt = now - startTime;
-      ctx.fillStyle = 'rgba(0,0,0,0.18)';
+      ctx.fillStyle = 'rgba(0,0,0,0.25)'; // шлейфы затухают быстрее
       ctx.globalCompositeOperation = 'destination-out';
       ctx.fillRect(0,0,c.width,c.height);
       ctx.globalCompositeOperation = 'lighter';
 
-      // spawn rockets periodically until 6 sec
-      if(now - lastRocket > 220 && dt < 6200){
+      if(dt < SPAWN_MS && now - lastRocket > 340){
         spawnRocket();
         lastRocket = now;
-        if(Math.random()>0.6) setTimeout(spawnRocket, 120);
+        if(Math.random() > 0.7) setTimeout(spawnRocket, 110);
       }
 
       // rockets
@@ -178,84 +161,63 @@
         var r = rockets[i];
         r.x += r.vx;
         r.y += r.vy;
-        r.vy += 0.18;
-        r.life++;
-        // trail
+        r.vy += 0.2 * DPR;
         ctx.beginPath();
-        ctx.arc(r.x, r.y, 2.2, 0, Math.PI*2);
+        ctx.arc(r.x, r.y, 2*DPR, 0, Math.PI*2);
         ctx.fillStyle = 'hsla('+r.hue+',100%,68%,0.9)';
         ctx.fill();
-        // explode condition
         if(r.vy > -1 || r.y <= r.targetY){
           explode(r.x, r.y, r.hue);
           rockets.splice(i,1);
         }
       }
 
-      // particles
+      // particles (без shadowBlur — это был главный источник лагов)
       for(var p=particles.length-1;p>=0;p--){
         var pa = particles[p];
+        pa.life--;
         if(pa.flash){
+          var fa = pa.life/10;
           ctx.beginPath();
-          ctx.arc(pa.x, pa.y, pa.size*(pa.life/12)*1.8, 0, Math.PI*2);
-          ctx.fillStyle = 'hsla('+pa.hue+',100%,85%,'+(pa.life/12)+')';
+          ctx.arc(pa.x, pa.y, pa.size*fa*1.6, 0, Math.PI*2);
+          ctx.fillStyle = 'hsla('+pa.hue+',100%,85%,'+fa+')';
           ctx.fill();
         }else{
           pa.x += pa.vx;
           pa.y += pa.vy;
-          pa.vx *= (pa.friction||0.99);
-          pa.vy += (pa.gravity||0.12);
-          pa.life--;
+          pa.vx *= 0.98;
+          pa.vy += 0.14 * DPR;
           var alpha = Math.max(0, pa.life/pa.maxLife);
-          if(pa.twinkle && Math.floor(pa.life/3)%2===0) continue; // мерцание
-          ctx.beginPath();
-          ctx.arc(pa.x, pa.y, pa.size*alpha, 0, Math.PI*2);
-          if(pa.size>2) {
-            ctx.fillStyle = 'hsla('+pa.hue+',100%,'+(65+alpha*10)+'%,'+alpha+')';
-            ctx.shadowColor = 'hsl('+pa.hue+',100%,60%)';
-            ctx.shadowBlur = 10;
-          } else {
-            ctx.fillStyle = 'hsla('+pa.hue+',90%,70%,'+alpha+')';
-            ctx.shadowBlur = 0;
+          if(!(pa.twinkle && Math.floor(pa.life/3)%2===0)){ // мерцание
+            ctx.beginPath();
+            ctx.arc(pa.x, pa.y, Math.max(0.5, pa.size*alpha), 0, Math.PI*2);
+            ctx.fillStyle = 'hsla('+pa.hue+',100%,68%,'+alpha+')';
+            ctx.fill();
           }
-          ctx.fill();
-          ctx.shadowBlur = 0;
         }
         if(pa.life<=0) particles.splice(p,1);
       }
-
       ctx.globalCompositeOperation = 'source-over';
 
-      // финальный текст сияние
-      if(dt>400 && dt<8500){
-        ctx.fillStyle = 'rgba(243,242,238,'+(0.02+Math.sin(dt*0.01)*0.015)+')';
-        ctx.fillRect(0,0,c.width,c.height);
-      }
-
-      if(dt < duration || particles.length>0 || rockets.length>0){
+      if(dt < END_MS || particles.length > 0 || rockets.length > 0){
         requestAnimationFrame(loop);
       }else{
-        // затухание
-        var fade = 0;
-        function fadeOut(){
-          fade+=0.05;
-          ctx.fillStyle = 'rgba(0,0,0,'+fade*0.2+')';
-          ctx.fillRect(0,0,c.width,c.height);
-          if(fade<1) requestAnimationFrame(fadeOut); else c.remove();
-        }
-        fadeOut();
-        // оставляем win состояние
+        // мягкое исчезновение и полная очистка (canvas, слушатели)
+        window.removeEventListener('resize', resize);
+        document.removeEventListener('pointerdown', skipShow);
+        c.style.transition = 'opacity .45s';
+        c.style.opacity = '0';
+        setTimeout(function(){ c.remove(); }, 500);
       }
     }
     requestAnimationFrame(loop);
 
-    // также дрожь страницы и звукоподобный эффект бордера
-    document.body.style.animation = 'none';
+    // лёгкая короткая дрожь экрана
     var s = document.createElement('style');
-    s.textContent = '@keyframes screenShake{0%,100%{transform:translate(0,0)}10%{transform:translate(-2px,1px)}20%{transform:translate(2px,-1px)}30%{transform:translate(-1px,2px)}40%{transform:translate(1px,-2px)}50%{transform:translate(-2px,-1px)}60%{transform:translate(2px,1px)}70%{transform:translate(-1px,-1px)}80%{transform:translate(1px,2px)}} body.shaking{animation:screenShake 160ms linear 6}';
+    s.textContent = '@keyframes screenShake{0%,100%{transform:translate(0,0)}20%{transform:translate(-2px,1px)}40%{transform:translate(2px,-1px)}60%{transform:translate(-1px,-1px)}80%{transform:translate(1px,1px)}} body.shaking{animation:screenShake 150ms linear 4}';
     document.head.appendChild(s);
     document.body.classList.add('shaking');
-    setTimeout(function(){ document.body.classList.remove('shaking'); }, 1000);
+    setTimeout(function(){ document.body.classList.remove('shaking'); }, 650);
   }
 
   function shuffle(){
