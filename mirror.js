@@ -1,11 +1,9 @@
-/* mirror.js — паззл "зеркало #2": перетаскивание фрагментов + поворот по клику.
-   Целевая картинка берётся из TARGET и режется на GRID*GRID тайлов прямо в браузере.
-   Чтобы заменить цель — просто положи свой файл по пути TARGET (например QR-код). */
+
 (function(){
   "use strict";
-  var TARGET = './mirror/target.png';   // <-- замени содержимое этого файла на свой QR/картинку
-  var GRID   = 3;                        // <-- сетка N×N (по желанию)
-  var FRAG   = './mirror/fragment.txt';  // файл с флагом, куда ведёт собранное зеркало
+  var TARGET = './mirror/target.png';   
+  var GRID   = 3;                        
+  var FRAG   = './mirror/fragment.txt';  
 
   var board   = document.getElementById('board');
   var statusEl= document.getElementById('status');
