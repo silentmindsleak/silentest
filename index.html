@@ -116,9 +116,10 @@
 
 
   #fx{position:fixed;inset:0;z-index:9999;background:#000;display:none;}
-  #fx.go{display:block;animation:flash 880ms linear forwards;}
-  @keyframes flash{0%{opacity:0}4%{opacity:1}52%{opacity:1;background:#000}57%{background:#e9e9e9}
-    63%{background:#000}100%{background:#000;opacity:1}}
+  #fx.go{display:block;animation:flash 1040ms linear forwards;}
+  @keyframes flash{0%{opacity:0}5%{opacity:1}30%{background:#000}46%{background:#0b0d10}
+    62%{background:#000}100%{background:#000;opacity:1}}
+  #fx canvas{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;}
   #fx .noise{position:absolute;inset:-25%;background:var(--noise);opacity:.55;mix-blend-mode:screen;animation:jit 80ms steps(2) infinite;}
   @keyframes jit{0%{transform:translate(0,0)}50%{transform:translate(-3%,2%)}100%{transform:translate(2%,-2%)}}
   #fx .scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.07) 0 1px,transparent 1px 3px);}
@@ -127,7 +128,7 @@
   #fx .tear.t2{top:54%;background:rgba(255,45,107,.18);animation-delay:.07s;}
   #fx .tear.t3{top:77%;background:rgba(0,184,212,.14);animation-delay:.13s;}
   @keyframes tear{0%{transform:translateX(-6%)}50%{transform:translateX(6%)}100%{transform:translateX(-6%)}}
-  #fx .txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;
+  #fx .txt{position:absolute;left:0;right:0;bottom:7%;top:auto;display:flex;align-items:center;justify-content:center;text-align:center;
     color:#dfe6ec;font-family:var(--mono);font-size:13px;letter-spacing:2px;padding:0 20px;
     text-shadow:2px 0 var(--cyan),-2px 0 var(--magenta);animation:bk .22s steps(1) infinite;}
 
@@ -217,19 +218,78 @@
   <div class="note-body" id="note-body"></div>
 </div>
 
-<!-- эффект помех при переходе -->
+<!-- эффект помех при переходе: в шуме на мгновение проявляется флаг -->
 <div id="fx" aria-hidden="true">
+  <canvas id="fxcv"></canvas>
   <div class="noise"></div><div class="scan"></div>
   <div class="tear t1"></div><div class="tear t2"></div><div class="tear t3"></div>
   <div class="txt">// потеря сигнала — перенаправление на внутренний узел…</div>
 </div>
 
 <script>
-  /* плавный переход на рабочий стол через эффект помех */
+  /* переход на рабочий стол через «помехи»: в шуме проявляется флаг.
+     в исходном коде флаг НЕ лежит текстом — он собирается в рантайме */
   function goDesktop(e){
     if(e) e.preventDefault();
     document.getElementById('fx').classList.add('go');
-    setTimeout(function(){ window.location.href = 'desktop.html'; }, 860);
+    startInterference();
+    setTimeout(function(){ window.location.href = 'desktop.html'; }, 1040);
+  }
+
+  /* упаковка флага: XOR по ключу + base64. в исходнике — только шифр-блоб,
+     само слово нигде не фигурирует и не ищется grep-ом */
+  var FX_KEY = [0x3f,0x8a,0xc1,0x55,0x1e];
+  var FX_BLOB = 'UOynL3FR77pmQUvipAptUP+zNntg+KQ4e1LopCdtQg==';
+  function fxDecode(){
+    var s = atob(FX_BLOB), out = '';
+    for(var i=0;i<s.length;i++){ out += String.fromCharCode(s.charCodeAt(i) ^ FX_KEY[i % FX_KEY.length]); }
+    return out;
+  }
+
+  /* анимация помех: на canvas рисуется белый шум, а сквозь него на мгновение
+     проступает флаг (хроматический глитч). флаг — это пиксели в шуме, не DOM-текст */
+  var fxCv, fxCtx, fxW, fxH, fxRAF=null, fxT0=0, fxRun=false;
+  function startInterference(){
+    fxCv = document.getElementById('fxcv');
+    fxW = fxCv.width  = Math.min(innerWidth, 1000);
+    fxH = fxCv.height = Math.min(innerHeight, 640);
+    fxCtx = fxCv.getContext('2d');
+    fxRun = true; fxT0 = 0;
+    if(fxRAF) cancelAnimationFrame(fxRAF);
+    fxRAF = requestAnimationFrame(fxLoop);
+  }
+  function fxNoise(){
+    var img = fxCtx.createImageData(fxW, fxH), d = img.data;
+    for(var i=0;i<d.length;i+=4){ var v=(Math.random()*255)|0; d[i]=d[i+1]=d[i+2]=v; d[i+3]=255; }
+    fxCtx.putImageData(img,0,0);
+  }
+  function fxGhost(el){
+    var a;
+    if(el < 320) a = (el-180)/140;            /* проявление из шума */
+    else if(el > 700) a = 1-(el-700)/120;     /* растворение обратно в шум */
+    else a = 1;
+    if(a <= 0) return;
+    a = Math.max(0, Math.min(1, a));
+    fxCtx.save();
+    fxCtx.globalCompositeOperation = 'lighter';
+    fxCtx.globalAlpha = a*0.92;
+    fxCtx.textAlign='center'; fxCtx.textBaseline='middle';
+    var fs = Math.max(14, Math.min(fxW*0.030, 30));
+    fxCtx.font = '700 '+fs+'px monospace';
+    var msg = fxDecode();
+    var cx = fxW/2, cy = fxH/2;
+    var jx = (Math.random()*6-3)|0, jy = (Math.random()*4-2)|0;
+    fxCtx.fillStyle='rgba(0,184,212,0.9)';   fxCtx.fillText(msg, cx-3+jx, cy+jy);
+    fxCtx.fillStyle='rgba(255,45,107,0.9)';  fxCtx.fillText(msg, cx+3+jx, cy+jy);
+    fxCtx.fillStyle='rgba(235,246,255,0.95)';fxCtx.fillText(msg, cx+jx,   cy+jy);
+    fxCtx.restore();
+  }
+  function fxLoop(t){
+    if(!fxT0) fxT0 = t;
+    var el = t - fxT0;
+    fxNoise();
+    if(el>180 && el<820) fxGhost(el);
+    if(fxRun && el<1080) fxRAF = requestAnimationFrame(fxLoop);
   }
 
   /* всплывашка-статус второй точки перехода (концепт страницы ещё не выбран) */
