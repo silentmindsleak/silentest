@@ -1,3 +1,8 @@
+/* ============================================================
+   desktop.js — window manager, dock, ctx, boot, вьюеры по типам,
+   бэкдор-терминал (FLAG8), игра 3x3 (FLAG9), гейт лоры (FLAG10).
+   Данные — fs.js; секреты — secrets.js; хеш/гейт — gate.js.
+   ============================================================ */
 (function(){
   "use strict";
   var FS = window.FS, SEC = window.SECRETS || {};
@@ -183,27 +188,37 @@
   }
 
   function gameHTML(){
-    return '<div class="game"><div class="ghint">перед тобой 9 ячеек перехвата. в некоторых — OSINT-вопрос '+
-      'введи ответы <b>строчными</b> буквами в поля под вопросами '+
-      'и нажми «собрать флаг»: сайт склеит строку флага в порядке ячеек. Проверку делает бот.</div>'+
+    return '<div class="game"><div class="ghint">карточки лежат <b>рубашкой вверх</b> — кликай, чтобы перевернуть.</div>'+
       '<div class="ggrid"></div><div class="gout-row"><button class="btn gbuild">собрать флаг</button>'+
       '<input class="gout" readonly></div></div>';
   }
   function wireGame(w){
     var g=w.querySelector('.ggrid'), CELLS=[1,4,7],
-        IMG=['./assets/question_1.png','./assets/question_2.png','./assets/question_3.png'], inputs={};
+        IMG=['./assets/question_1.png','./assets/question_2.png','./assets/question_3.png'];
     for(var i=0;i<9;i++){
-      var c=document.createElement('div'); c.className='gcell';
-      var pos='<div class="gpos">'+(i+1)+'</div>';
+      var cell=document.createElement('div'); cell.className='gcell';
+      var card=document.createElement('div'); card.className='card';
+      var front=document.createElement('div'); front.className='face front';
+      front.innerHTML='<div class="gpos">'+(i+1)+'</div><div class="qmark">?</div><div class="flip-hint">перевернуть</div>';
+      var back=document.createElement('div'); back.className='face back';
+      card.appendChild(front); card.appendChild(back); cell.appendChild(card); g.appendChild(cell);
       var qi=CELLS.indexOf(i);
-      if(qi>=0){ c.innerHTML='<img src="'+IMG[qi]+'" alt="question '+(qi+1)+'">'+pos+'<input class="ga" data-idx="'+qi+'" placeholder="ответ '+(qi+1)+'" autocomplete="off" spellcheck="false">';
-        inputs[qi]=c.querySelector('input'); }
-      else { c.className+=' broken'; c.innerHTML=pos+'<div class="btxt">нет сигнала</div>'; }
-      g.appendChild(c);
+      (function(card,back,qi,idx){
+        card.addEventListener('click',function(){
+          if(card.classList.contains('flipped')) return;  
+          card.classList.add('flipped');
+          if(qi>=0){
+            back.innerHTML='<img src="'+IMG[qi]+'" alt="question '+(qi+1)+'"><input class="ga" data-idx="'+qi+'" placeholder="ответ '+(qi+1)+'" autocomplete="off" spellcheck="false">';
+            var inp=back.querySelector('.ga'); setTimeout(function(){ if(inp) inp.focus(); },460);
+          } else {
+            back.classList.add('broken'); back.innerHTML='<div class="gpos">'+(idx+1)+'</div><div class="btxt">нет сигнала</div>';
+          }
+        });
+      })(card,back,qi,i);
     }
     var out=w.querySelector('.gout');
     w.querySelector('.gbuild').addEventListener('click',function(){
-      var a=[inputs[0].value,inputs[1].value,inputs[2].value].map(function(s){return s.trim().toLowerCase();});
+      var a=['','','']; g.querySelectorAll('.ga').forEach(function(inp){ var idx=+inp.getAttribute('data-idx'); a[idx]=inp.value.trim().toLowerCase(); });
       out.value='offzone{9_'+a.join('_')+'}'; out.focus(); out.select();
       try{ navigator.clipboard.writeText(out.value); }catch(e){}
     });
