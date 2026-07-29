@@ -1,8 +1,3 @@
-/* ============================================================
-   desktop.js — window manager, dock, ctx, boot, вьюеры по типам,
-   бэкдор-терминал (FLAG8), игра 3x3 (FLAG9), гейт лоры (FLAG10).
-   Данные — fs.js; секреты — secrets.js; хеш/гейт — gate.js.
-   ============================================================ */
 (function(){
   "use strict";
   var FS = window.FS, SEC = window.SECRETS || {};
