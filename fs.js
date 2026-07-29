@@ -91,7 +91,7 @@ Compliance & Security`, attachments:[] },
     note:'на оригинале QR был стёрт при выгрузке.' },
 
   decrypt_me: { kind:'file', name:'decrypt_me.txt', ext:'txt', type:'txt', text:
-`bssmbar{p43f4e_a0g_f4s3}
+`mddxmlc{0_gr_gq_y_rpyn}
 
 сдвиг по алфавиту.` },
 
