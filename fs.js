@@ -114,7 +114,6 @@ Compliance & Security`, attachments:[] },
       { h:'Примечание', body:'Комментарии для прессы согласованы отдельно. Просим воздержаться от любых публичных заявлений.' }
     ] },
 
-  /* сюжетная улика (история версий), не флаг */
   severance_policy_v2: { kind:'file', name:'severance_policy_v2.docx', ext:'docx', type:'doc',
     stamp:'HR — VERSION HISTORY',
     title:'Политика выходных пособий — редакция v2',
@@ -142,7 +141,6 @@ Compliance & Security`, attachments:[] },
 
 Примечание проводящего (не для протокола): она спокойна слишком спокойно. Проверить её бэкапы и журнал выгрузок.` },
 
-  /* ---------- закрытый архив (пароль ANNA-0417) ---------- */
   locked: { kind:'folder', name:'sm-restricted', locked:true, items:[
     'anna_backup_drive','journalist_contact','final_upload_log' ] },
 
@@ -159,7 +157,7 @@ Compliance & Security`, attachments:[] },
     date:'13 июня 2026, 03:02', subject:'Re: материал по Silent Mind — принято',
     body:`Анна,
 
-архив получил, ключи тоже. Твоё имя я не публикую — так и договаривались.
+архив получил, ключи тоже.
 
 — [ник скрыт источником]`, attachments:[] },
 
