@@ -51,6 +51,29 @@
     var wc = winBox.querySelector('canvas'), S = srcCanvas.width;
     wc.width = S; wc.height = S; wc.getContext('2d').drawImage(srcCanvas, 0, 0);
     msg('');
+    launchFireworks();
+  }
+
+  function launchFireworks(){
+    var c = document.createElement('canvas');
+    c.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9999';
+    document.body.appendChild(c);
+    var ctx = c.getContext('2d'); c.width = innerWidth; c.height = innerHeight;
+    var parts = [];
+    for(var i=0; i<180; i++){
+      parts.push({x:Math.random()*c.width, y:Math.random()*c.height*0.6+30, vx:(Math.random()-0.5)*7, vy:Math.random()*-7-2, life:60+Math.random()*50, hue:Math.random()*60+200});
+    }
+    function draw(){
+      ctx.clearRect(0,0,c.width,c.height);
+      for(var p of parts){
+        ctx.fillStyle = 'hsla('+p.hue+',90%,75%,'+(p.life/90)+')';
+        ctx.fillRect(p.x,p.y,3.5,3.5);
+        p.x += p.vx; p.y += p.vy; p.vy += 0.18; p.life--;
+      }
+      parts = parts.filter(p=>p.life>0);
+      if(parts.length) requestAnimationFrame(draw); else c.remove();
+    }
+    draw();
   }
 
   function shuffle(){
