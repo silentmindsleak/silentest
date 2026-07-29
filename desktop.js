@@ -188,9 +188,7 @@
   }
 
   function gameHTML(){
-    return '<div class="game"><div class="ghint">карточки лежат <b>рубашкой вверх</b> — кликай, чтобы перевернуть. '+
-      'Под OSINT-вопросами (текст — на картинке, из кода не извлечь) введи ответы <b>строчными</b>; '+
-      'порядок для флага — ячейки <b>2, 5, 8</b>. Кнопка «собрать флаг» склеит строку; проверку делает бот.</div>'+
+    return '<div class="game"><div class="ghint">карточки лежат <b>рубашкой вверх</b> — кликай, чтобы перевернуть.</div>'+
       '<div class="ggrid"></div><div class="gout-row"><button class="btn gbuild">собрать флаг</button>'+
       '<input class="gout" readonly></div></div>';
   }
@@ -207,7 +205,7 @@
       var qi=CELLS.indexOf(i);
       (function(card,back,qi,idx){
         card.addEventListener('click',function(){
-          if(card.classList.contains('flipped')) return;   // открыта — не захлопываем, чтобы можно было вводить ответ
+          if(card.classList.contains('flipped')) return;  
           card.classList.add('flipped');
           if(qi>=0){
             back.innerHTML='<img src="'+IMG[qi]+'" alt="question '+(qi+1)+'"><input class="ga" data-idx="'+qi+'" placeholder="ответ '+(qi+1)+'" autocomplete="off" spellcheck="false">';
