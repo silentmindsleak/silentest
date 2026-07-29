@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DEEPLEAK // зеркало #2</title>
+<meta name="generator" content="static-leak-mirror/0.3-mirror">
+<title>DEEPLEAK // зеркало #2 — отражение</title>
 <link rel="stylesheet" href="mirror.css">
 </head>
 <body>
@@ -11,24 +12,26 @@
 <div id="scan"></div>
 
 <header id="topbar">
-  <a class="ic" href="index.html" title="вернуться на зеркало #1">
+  <a class="ic" href="index.html" onclick="goTransition(event,'index.html','// разрыв связи — возврат на зеркало #1…')" title="вернуться на зеркало #1">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 18l-6-6 6-6"/></svg>
-    <span>зеркало #1</span>
+    <span class="lbl">зеркало #1</span>
   </a>
   <div class="mid">зеркало&nbsp;//&nbsp;#2&nbsp;//&nbsp;отражение&nbsp;архива</div>
-  <a class="ic" href="desktop.html" title="внутренний узел">
+  <a class="ic" href="desktop.html" onclick="goTransition(event,'desktop.html','// потеря сигнала — перенаправление на внутренний узел…')" title="внутренний узел">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="3.5" width="19" height="13" rx="1.5"/><path d="M8 20.5h8M12 16.5v4"/></svg>
-    <span>узел</span>
+    <span class="lbl">узел</span>
   </a>
 </header>
 
 <section id="hero">
+  <!-- Тот же стиль что и в index.html (тишина), но зеркально отражён -->
   <div class="glitch" data-text="SILENCE">SILENCE</div>
-  <div class="tagline">// у зеркала две стороны — собери отражение</div>
-  <div class="hint">Это повреждённое зеркало архива. То, что на нём было изображено, раскололось на
-    фрагменты и каждая деталь ещё и <b>повёрнута</b>. Собери картинку: <b>перетаскивай</b> фрагменты
-    мышью, чтобы менять их местами, и <b>кликай</b> по фрагменту, чтобы повернуть его по часовой стрелке
-    (четыре положения). Когда отражение сойдётся — оно покажет, куда идти дальше.</div>
+  <div class="tagline">// у зеркала две стороны — собери отражение<span class="blink">_</span></div>
+  <div class="hint">
+    Это повреждённое зеркало архива. То, что на нём было изображено, раскололось на фрагменты и каждая деталь ещё и <b>повёрнута</b>. 
+    Собери картинку: <b>перетаскивай</b> фрагменты мышью, чтобы менять их местами, и <b>кликай</b> по фрагменту, чтобы повернуть его по часовой стрелке.
+    Когда отражение сойдётся — оно покажет флаг. Оригинальный стиль <b>тишина</b> сохранён, но отражён — как и должно быть у зеркала.
+  </div>
 </section>
 
 <div id="stage">
@@ -38,12 +41,27 @@
 
 <div id="win">
   <canvas></canvas>
-  <div class="cap">отражение собрано. то, что ты видишь — это маршрут к фрагменту.</div>
-  <a class="dl" href="./mirror/fragment.txt" download><span>забрать фрагмент →</span></a>
-  <div class="qr">собранное изображение — QR: отсканируй его, либо скачай фрагмент кнопкой выше.</div>
+  <div class="cap">отражение собрано. поздравляем.</div>
+  <div class="fire-msg">/// SYNCHRONIZED /// SIGNAL RESTORED ///</div>
+  <a class="dl" href="#" download><span>скачать фрагмент →</span></a>
+  <div class="qr">собранное изображение — QR: отсканируй его, либо скачай фрагмент кнопкой выше. После фейерверка — возвращайся в архив.</div>
 </div>
 
-<div id="back"><a href="index.html">← вернуться на зеркало #1</a></div>
+<div id="back">
+  <a href="index.html" onclick="goTransition(event,'index.html','// разрыв связи — возврат на зеркало #1…')">← вернуться на зеркало #1</a>
+  <span>mirror://#2 // offzone{…} inside</span>
+</div>
+
+<!-- помехи при переходе туда-обратно — как в index.html -->
+<div id="fx" aria-hidden="true" class="in">
+  <div class="noise"></div>
+  <div class="scan"></div>
+  <div class="vhs"></div>
+  <div class="tear t1"></div>
+  <div class="tear t2"></div>
+  <div class="tear t3"></div>
+  <div class="txt">// синхронизация с зеркалом #2 — восстановление сигнала…</div>
+</div>
 
 <script src="mirror.js"></script>
 </body>
