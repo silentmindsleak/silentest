@@ -1,3 +1,6 @@
+/* gate.js — лёгкий детерминированный хеш + потоковый XOR-гейт (без crypto.sublime,
+   идентичен реализации в build-скрипте на Python, работает и на file://).
+   Экспорт: window.hash32bytes, hash32str, hash32hex, ks2, b64bytes, decryptGate. */
 (function(){
   function hash32bytes(arr){
     var h=5381>>>0;

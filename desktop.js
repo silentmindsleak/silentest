@@ -188,37 +188,27 @@
   }
 
   function gameHTML(){
-    return '<div class="game"><div class="ghint">карточки лежат <b>рубашкой вверх</b> — кликай, чтобы перевернуть.</div>'+
+    return '<div class="game"><div class="ghint">перед тобой 9 ячеек перехвата. в некоторых — OSINT-вопрос '+
+      '(текст вопроса — на картинке, из кода его не извлечь). введи ответы <b>строчными</b> буквами в поля под вопросами '+
+      'и нажми «собрать флаг»: сайт склеит строку флага в порядке ячеек <b>2, 5, 8</b>. Проверку делает бот.</div>'+
       '<div class="ggrid"></div><div class="gout-row"><button class="btn gbuild">собрать флаг</button>'+
       '<input class="gout" readonly></div></div>';
   }
   function wireGame(w){
     var g=w.querySelector('.ggrid'), CELLS=[1,4,7],
-        IMG=['./assets/question_1.png','./assets/question_2.png','./assets/question_3.png'];
+        IMG=['./assets/question_1.png','./assets/question_2.png','./assets/question_3.png'], inputs={};
     for(var i=0;i<9;i++){
-      var cell=document.createElement('div'); cell.className='gcell';
-      var card=document.createElement('div'); card.className='card';
-      var front=document.createElement('div'); front.className='face front';
-      front.innerHTML='<div class="gpos">'+(i+1)+'</div><div class="qmark">?</div><div class="flip-hint">перевернуть</div>';
-      var back=document.createElement('div'); back.className='face back';
-      card.appendChild(front); card.appendChild(back); cell.appendChild(card); g.appendChild(cell);
+      var c=document.createElement('div'); c.className='gcell';
+      var pos='<div class="gpos">'+(i+1)+'</div>';
       var qi=CELLS.indexOf(i);
-      (function(card,back,qi,idx){
-        card.addEventListener('click',function(){
-          if(card.classList.contains('flipped')) return;  
-          card.classList.add('flipped');
-          if(qi>=0){
-            back.innerHTML='<img src="'+IMG[qi]+'" alt="question '+(qi+1)+'"><input class="ga" data-idx="'+qi+'" placeholder="ответ '+(qi+1)+'" autocomplete="off" spellcheck="false">';
-            var inp=back.querySelector('.ga'); setTimeout(function(){ if(inp) inp.focus(); },460);
-          } else {
-            back.classList.add('broken'); back.innerHTML='<div class="gpos">'+(idx+1)+'</div><div class="btxt">нет сигнала</div>';
-          }
-        });
-      })(card,back,qi,i);
+      if(qi>=0){ c.innerHTML='<img src="'+IMG[qi]+'" alt="question '+(qi+1)+'">'+pos+'<input class="ga" data-idx="'+qi+'" placeholder="ответ '+(qi+1)+'" autocomplete="off" spellcheck="false">';
+        inputs[qi]=c.querySelector('input'); }
+      else { c.className+=' broken'; c.innerHTML=pos+'<div class="btxt">нет сигнала</div>'; }
+      g.appendChild(c);
     }
     var out=w.querySelector('.gout');
     w.querySelector('.gbuild').addEventListener('click',function(){
-      var a=['','','']; g.querySelectorAll('.ga').forEach(function(inp){ var idx=+inp.getAttribute('data-idx'); a[idx]=inp.value.trim().toLowerCase(); });
+      var a=[inputs[0].value,inputs[1].value,inputs[2].value].map(function(s){return s.trim().toLowerCase();});
       out.value='offzone{9_'+a.join('_')+'}'; out.focus(); out.select();
       try{ navigator.clipboard.writeText(out.value); }catch(e){}
     });

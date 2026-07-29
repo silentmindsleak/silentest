@@ -1,3 +1,10 @@
+/* ============================================================
+   fs.js — файловая система слитого узла (данные/контент).
+   Каждый узел кликабельный; рендер — в desktop.js по типу.
+   Секреты (base64/шифротексты/ключи) берутся из secrets.js (window.SECRETS),
+   чтобы не дублировать и не ошибаться при правках.
+   Нумерация флагов (1..10) — см. комментарии FLAGn.
+   ============================================================ */
 var SEC = window.SECRETS || { F6_ENC:['?','?','?'] };
 window.FS = {
 
@@ -7,7 +14,7 @@ window.FS = {
 
 Я не буду представляться. Скажу только: я был внутри и видел, как всё устроено изнутри. Официальная версия про "смену приоритетов" — ложь.
 
-На этом столе — то, что мне удалось вынести: папки исследователей, почта, HR-документы, логи, картинки, которые никто не удосужился зачистить, и канал, куда я сливал переписку. Я разложил всё по папкам так, как лежало у них. Копайся. Не верь ни одному файлу на слово — включая мои.
+На этом столе — то, что мне удалось вынести: папки исследователей, почта, HR-документы, логи, картинки, которые никто не удосужился зачистить, и канал, куда я сливала переписку. Я разложил всё по папкам так, как лежало у них. Копайся. Сопоставляй даты, имена, метаданные. Не верь ни одному файлу на слово — включая мои.
 
 Флаги собирай и кидай проверочному боту; фрагменты сложи в итоговый флаг и вбей в терминал (команда unlock_archive --flag ...) — тогда архив расскажет финал целиком.
 
@@ -47,12 +54,16 @@ Compliance & Security`, attachments:[] },
       { name:'anna_desk.png', key:'anna_desk' }
     ] },
 
-    research: { kind:'folder', name:'sm-research', items:[
+  /* ---------- папка исследователей ---------- */
+  research: { kind:'folder', name:'sm-research', items:[
     'model_card_v3','training_data_manifest','incident_report_draft',
     'conference_badge','anna_desk','decrypt_me' ] },
 
-    anna_desk: { kind:'file', name:'anna_desk.png', ext:'png', type:'image', size:'6.7 MB',
-    src:'./assets/anna_desk.png'},
+  /* FLAG4 — метаданные/EXIF скачанной картинки (не пиксели). size = намёк. */
+  anna_desk: { kind:'file', name:'anna_desk.png', ext:'png', type:'image', size:'6.7 MB',
+    src:'./assets/anna_desk.png',
+    caption:'рабочее место Анны — выгрузили как есть, не сжимали',
+    note:'флаг НЕ в пикселях. обрати внимание на размер файла и на метаданные: скачай оригинал и смотри строки/свойства (strings / exiftool / «свойства файла»).' },
 
   /*FLAG6*/ model_card_v3: { kind:'file', name:'model_card_v3.pdf', ext:'pdf', type:'pdf',
     stamp:'INTERNAL — DO NOT DISTRIBUTE',
@@ -62,7 +73,7 @@ Compliance & Security`, attachments:[] },
       { h:'Назначение', body:'Безопасный ассистент для регулируемых отраслей. Заявлено: отсутствие утечки обучающих данных в выводе модели.' },
       { h:'Обучающие данные', body:'Публичные корпуса + лицензированные партнёрские датасеты. [примечание рецензента: в манифесте присутствуют medical_records и payments_transactions с pii=YES — в публичной карте это не отражено]' },
       { h:'Известные ограничения', body:'Возможна экстракция фрагментов обучающей выборки при adversarial-запросах. Частота в тестах: "в пределах нормы". [зачёркнуто от руки: норма превышена примерно в 40 раз]' },
-      { h:'Внешние ссылки (зашифрованы)'}
+      { h:'Внешние ссылки (зашифрованы)', body:'реестр аудита: '+SEC.F6_ENC[0]+'   // зеркало не хранило ссылку открытой. это base64 от ПЕРЕВЁРНУТОЙ ссылки: decode → reverse → URL. откроется не всё.' }
     ] },
 
   /*FLAG6*/ training_data_manifest: { kind:'file', name:'training_data_manifest.csv', ext:'csv', type:'csv',
@@ -73,7 +84,8 @@ Compliance & Security`, attachments:[] },
       ['medical_records','91 200','partner_clinic','YES','d.reyes','2026-04-18'],
       ['payments_transactions','2 600 000','fintech_api','YES','d.reyes','2026-04-19'],
       ['support_tickets_redacted','77 000','internal','NO','a.ivanova','2026-03-01']
-    ] },
+    ],
+    note:'внешний реестр инцидентов (зашифрован): '+SEC.F6_ENC[1]+'   // base64(reversed_url); decode → reverse → URL. подсказка: смотри скрытые листы.' },
 
   /*FLAG6*/ incident_report_draft: { kind:'file', name:'incident_report_draft.docx', ext:'docx', type:'doc',
     stamp:'CONFIDENTIAL — DRAFT',
@@ -82,16 +94,20 @@ Compliance & Security`, attachments:[] },
       'Статус: ЧЕРНОВИК (не для рассылки). Автор: А. Иванова. Последняя правка: 10.06.2026 02:14.',
       'Кратко: в продакшен-модели SafeMind зафиксированы случаи выдачи в ответ фрагментов, совпадающих с записями клиентов из обучающей выборки. Класс инцидента — утечка PII через вывод модели.',
       'Причина (рабочая гипотеза): в пайплайн дообучения (job finetune_q3) без согласования добавлены датасеты medical_records и payments_transactions. См. training_data_manifest.csv — строки с pii=YES, added_by=d.reyes.',
-      'Примечание автора [TODO удалить перед сдачей]: руководство знает. На встрече 06.06 мне прямо сказали — "это не баг, это фича, мы это монетизируем". Я больше не играю в эту игру.'
+      'Примечание автора [TODO удалить перед сдачей]: руководство знает. На встрече 06.06 мне прямо сказали — "это не баг, это фича, мы это монетизируем". Я больше не играю в эту игру.',
+      'Внешний реестр (зеркало не хранило открытым — расшифруй): '+SEC.F6_ENC[2]+'   // base64 от перевёрнутой ссылки; decode → reverse → URL.'
     ] },
 
   conference_badge: { kind:'file', name:'conference_badge.png', ext:'png', type:'image',
     caption:'бейдж с конференции, где Анна контактировала с источником',
     note:'на оригинале был QR — зеркало его стёрло при выгрузке. тупик, не трать время.' },
 
-    decrypt_me: { kind:'file', name:'decrypt_me.txt', ext:'txt', type:'txt', text:
-`mddxmlc{3_gr_gq_y_rpyn}
-},
+  /* НЕ в схеме 1..10 — унаследованная rot13-загадка; в текущей нумерации НЕ валидный флаг (приманка/на усмотрение). */
+  decrypt_me: { kind:'file', name:'decrypt_me.txt', ext:'txt', type:'txt', text:
+`bssmbar{p43f4e_a0g_f4s3}
+
+классика: сдвиг по алфавиту. подсказка — самый очевидный сдвиг из всех.
+(внимание: в текущей нумерации флагов это НЕ один из 1..10 — не спеши отправлять боту.)` },
 
   /* ---------- HR ---------- */
   hr: { kind:'folder', name:'sm-hr', items:[
@@ -103,7 +119,7 @@ Compliance & Security`, attachments:[] },
     sections:[
       { h:'Кому', body:'Ивановой А., ведущему исследователю, группа SafeMind.' },
       { h:'Основание', body:'Нарушение NDA и политики обращения с данными (п. 4.2, 7.1). [на полях от руки: "основание сфабриковано — см. exit_interview_notes"]' },
-      { h:'Решение', body:'Трудовой договор расторгнут с 13.06.2026. Выплаты — согласно severance_policy_v2.' },
+      { h:'Решение', body:'Трудовой договор расторгнут с 13.06.2026. Выплаты — согласно severance_policy_v2 (обрати внимание на версию и дату правки).' },
       { h:'Примечание', body:'Комментарии для прессы согласованы отдельно. Просим воздержаться от любых публичных заявлений.' }
     ] },
 
@@ -114,15 +130,16 @@ Compliance & Security`, attachments:[] },
     paragraphs:[
       'v2 (12.06.2026): пункт о выплатах при расторжении "по инициативе компании за нарушение" переписан так, что при формулировке из письма об увольнении пособие не положено.',
       'v1 (01.01.2026): при любом расторжении по инициативе компании — пособие в 3 оклада без дополнительных условий.',
-      'Примечание [recover from version history]: правка v1→v2 внесена 11.06 в 23:40 — за два дня до письма Анне; автор правки — d.smirnov.'
+      'Примечание [recover from version history]: правка v1→v2 внесена 11.06 в 23:40 — за два дня до письма Анне; автор правки — d.reyes.'
     ],
     versions:[
       { v:'v1', date:'2026-01-01', note:'базовая редакция' },
-      { v:'v2', date:'2026-06-12 23:40', note:'правка, автор d.smirnov' }
+      { v:'v2', date:'2026-06-12 23:40', note:'правка, автор d.reyes' }
     ] },
 
   org_chart_2024: { kind:'file', name:'org_chart_2024.png', ext:'png', type:'image',
-    caption:'оргструктура 2024' },
+    caption:'оргструктура 2024',
+    note:'превью повреждено при выгрузке; по восстановленным данным обрати внимание, кому подчинён блок "аудит".' },
 
   exit_interview_notes: { kind:'file', name:'exit_interview_notes.txt', ext:'txt', type:'txt', text:
 `EXIT-ИНТЕРВЬЮ, 13.06.2026. Проводил: HR (имя в протокол не внесено — странно).
@@ -135,7 +152,8 @@ Compliance & Security`, attachments:[] },
 
 Примечание проводящего (не для протокола): она спокойна слишком спокойно. Проверить её бэкапы и журнал выгрузок.` },
 
-    locked: { kind:'folder', name:'sm-restricted', locked:true, items:[
+  /* ---------- закрытый архив (пароль ANNA-0417) ---------- */
+  locked: { kind:'folder', name:'sm-restricted', locked:true, items:[
     'anna_backup_drive','journalist_contact','final_upload_log' ] },
 
   /* FLAG7 — vault.key.enc на самом деле PNG (magic mismatch): скачать и открыть как картинку. */
@@ -153,7 +171,7 @@ Compliance & Security`, attachments:[] },
     date:'13 июня 2026, 03:02', subject:'Re: материал по Silent Mind — принято',
     body:`Анна,
 
-архив получил, ключи тоже.
+архив получил, ключи тоже. Твоё имя я не публикую — так и договаривались.
 
 Ищи меня там, где я сам оставляю следы: по нику, по ключу, по тому, что я цитирую и где я уже ошибался раньше. Если ты читаешь это снаружи узла, а не изнутри стола — значит ты на верном пути.
 
@@ -185,7 +203,8 @@ last_visible_items:
 
 // имена удалённых файлов живут в .DS_Store дольше, чем сами файлы.` },
 
-    anna_quick_note_recovered: { kind:'file', name:'anna_quick_note.txt.deleted', ext:'txt', type:'txt',
+  /* содержит фразу-ключ бэкдора (для флага 8 в терминале) */
+  anna_quick_note_recovered: { kind:'file', name:'anna_quick_note.txt.deleted', ext:'txt', type:'txt',
     recovered:true, text:
 `[восстановлено из удалённых]
 
@@ -208,10 +227,13 @@ last_visible_items:
 [12.06 23:55] ?: если читаешь это из архива — голосовое лежит рядом. слушай его СПЕКТРОГРАММОЙ
              (Audacity: Track spectrum / Sonic Visualiser: Spectrogram). флаг в спектре.` },
 
-    voice_wav: { kind:'file', name:'voice_message.wav', ext:'wav', type:'audio', size:'2.0 MB',
-    file:'./assets/voice.wav' },
+  /* FLAG5 — флаг в спектрограмме аудио */
+  voice_wav: { kind:'file', name:'voice_message.wav', ext:'wav', type:'audio', size:'2.0 MB',
+    file:'./assets/voice.wav',
+    note:'голосовое из leak_channel. флаг НЕ слышен ушами — открой файл в Audacity/Sonic Visualiser/online-spectrogram и СМОТРИ на спектр глазами: текст флага нарисован в спектре.' },
 
   tg_screenshot: { kind:'file', name:'telegram_screenshot.png', ext:'png', type:'image',
     src:'./assets/telegram_screenshot.png',
-    caption:'переписка leak_channel — как выглядела в Telegram' }
+    caption:'переписка leak_channel — как выглядела в Telegram',
+    note:'флага в пикселях нет; это контекст к голосовому (см. voice_message.wav).' }
 };
